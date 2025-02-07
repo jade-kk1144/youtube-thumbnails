@@ -87,11 +87,14 @@ def show_color_analysis(image, settings):
         col1, col2 = st.columns([1, 4])
         
         with col1:
+            # Convert RGB tuple to CSS color string
+            rgb_str = f"rgb({int(color[0])}, {int(color[1])}, {int(color[2])})"
+            #  background-color: rgb{rgb_str};
             # Make sure the color block is visible with explicit dimensions
             st.markdown(
                 f"""
                 <div style="
-                    background-color: rgb{tuple(color)};
+                    background-color: rgb{int(color[0]),int(color[1]),int(color[2])};
                     width: 100px;
                     height: 50px;
                     border: 1px solid #ddd;
