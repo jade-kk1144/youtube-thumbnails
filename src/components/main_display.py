@@ -4,7 +4,7 @@ from utils.youtube import extract_video_id, get_thumbnail
 from utils.image_analysis import (
     analyze_colors
     # detect_faces,
-    # detect_text,
+    ,detect_text
     # analyze_image_composition
 )
 # 

@@ -45,7 +45,45 @@ def analyze_colors(image: Image.Image, n_colors: int = 5) -> List[Tuple[np.ndarr
         logging.error(f"Error in color analysis: {str(e)}")
         return []
 
-
+def detect_text(image: Image.Image) -> Dict[str, any]:
+    """
+    Detect text in the image using pytesseract OCR.
+    
+    Args:
+        image: PIL Image object
+        
+    Returns:
+        Dictionary containing detected text and confidence scores
+    """
+    try:
+        # Get detailed OCR data
+        ocr_data = pytesseract.image_to_data(image, output_type=pytesseract.Output.DICT)
+        
+        # Filter out low confidence detections and empty text
+        filtered_text = []
+        confidences = []
+        positions = []
+        
+        for i, text in enumerate(ocr_data['text']):
+            if int(ocr_data['conf'][i]) > 0 and text.strip():  # Filter empty text and low confidence
+                filtered_text.append(text)
+                confidences.append(float(ocr_data['conf'][i]))
+                positions.append({
+                    'left': ocr_data['left'][i],
+                    'top': ocr_data['top'][i],
+                    'width': ocr_data['width'][i],
+                    'height': ocr_data['height'][i]
+                })
+        
+        return {
+            'text': filtered_text,
+            'confidences': confidences,
+            'positions': positions,
+            'full_text': ' '.join(filtered_text)
+        }
+    except Exception as e:
+        logging.error(f"Error in text detection: {str(e)}")
+        return {'text': [], 'confidences': [], 'positions': [], 'full_text': ''}
 
 
 
