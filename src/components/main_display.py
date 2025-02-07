@@ -70,17 +70,6 @@ def show_main_display(sidebar_state):
 def show_color_analysis(image, settings):
     st.subheader("Color Analysis")
     colors = analyze_colors(image, settings['color_count'])
-
-    # Display color palette
-    # cols = st.columns(len(colors))
-    # for idx, (color, percentage) in enumerate(colors):
-        # with cols[idx]:
-            # st.markdown(
-                # f'<div style="background-color: rgb{tuple(color)}; '
-                # f'height: 50px; border-radius: 5px;"></div>',
-                # unsafe_allow_html=True
-            # )
-            # st.write(f"{percentage:.1%}")
     # Display each color with its percentage
     for color, percentage in colors:
         # Create columns with specific widths
