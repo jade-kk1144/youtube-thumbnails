@@ -24,7 +24,7 @@ def show_main_display(sidebar_state):
     # Get and display thumbnail
     try:
         thumbnail = get_thumbnail(video_id)
-        st.image(thumbnail, caption="Video Thumbnail", use_column_width=True)
+        st.image(thumbnail, caption="Video Thumbnail", use_container_width=True)
         
         # Create tabs for different analyses
         if any(sidebar_state['options'].values()):
@@ -70,17 +70,55 @@ def show_main_display(sidebar_state):
 def show_color_analysis(image, settings):
     st.subheader("Color Analysis")
     colors = analyze_colors(image, settings['color_count'])
-    
+
     # Display color palette
-    cols = st.columns(len(colors))
-    for idx, (color, percentage) in enumerate(colors):
-        with cols[idx]:
+    # cols = st.columns(len(colors))
+    # for idx, (color, percentage) in enumerate(colors):
+        # with cols[idx]:
+            # st.markdown(
+                # f'<div style="background-color: rgb{tuple(color)}; '
+                # f'height: 50px; border-radius: 5px;"></div>',
+                # unsafe_allow_html=True
+            # )
+            # st.write(f"{percentage:.1%}")
+    # Display each color with its percentage
+    for color, percentage in colors:
+        # Create columns with specific widths
+        col1, col2 = st.columns([1, 4])
+        
+        with col1:
+            # Make sure the color block is visible with explicit dimensions
             st.markdown(
-                f'<div style="background-color: rgb{tuple(color)}; '
-                f'height: 50px; border-radius: 5px;"></div>',
+                f"""
+                <div style="
+                    background-color: rgb{tuple(color)};
+                    width: 100px;
+                    height: 50px;
+                    border: 1px solid #ddd;
+                    border-radius: 5px;
+                    display: inline-block;
+                "></div>
+                """,
                 unsafe_allow_html=True
             )
-            st.write(f"{percentage:.1%}")
+        
+        with col2:
+            # Vertically center the text with the color block
+            st.markdown(
+                f"""
+                <div style="
+                    line-height: 50px;
+                    font-size: 16px;
+                ">
+                    {percentage:.1%} (RGB: {color[0]}, {color[1]}, {color[2]})
+                </div>
+                """,
+                unsafe_allow_html=True
+            )
+        
+        # Add some spacing between rows
+        st.write("")
+
 # 
 # def show_face_analysis(image, settings):
     # st.subheader("Face Detection")
