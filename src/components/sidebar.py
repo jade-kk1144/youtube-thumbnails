@@ -9,7 +9,7 @@ def show_sidebar():
         # URL input
         url = st.text_input("Enter YouTube URL")
         
-        Time range selector
+        # Time range selector
         # st.subheader("Time Range")
         # date_range = st.date_input(
             # "Select date range",
