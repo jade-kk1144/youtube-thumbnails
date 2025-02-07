@@ -55,11 +55,11 @@ def show_main_display(sidebar_state):
                     # show_face_analysis(thumbnail, sidebar_state['settings'])
                 # current_tab += 1
                 # 
-            # if sidebar_state['options']['text_detection']:
-                # with tabs[current_tab]:
-                    # show_text_analysis(thumbnail, sidebar_state['settings'])
-                # current_tab += 1
-                # 
+            if sidebar_state['options']['text_detection']:
+                with tabs[current_tab]:
+                    show_text_analysis(thumbnail, sidebar_state['settings'])
+                current_tab += 1
+                
             # if sidebar_state['options']['composition']:
                 # with tabs[current_tab]:
                     # show_composition_analysis(thumbnail)
@@ -140,19 +140,19 @@ def show_color_analysis(image, settings):
         # st.image(np_image, caption="Faces Detected", use_column_width=True)
     # else:
         # st.write("No faces detected")
-# 
-# def show_text_analysis(image, settings):
-    # st.subheader("Text Analysis")
-    # text_data = detect_text(image)
-    # 
-    # if text_data['text']:
-        # st.write("Detected Text:")
-        # for text, conf in zip(text_data['text'], text_data['confidences']):
-            # if conf >= settings['min_text_confidence']:
-                # st.write(f"- {text} (Confidence: {conf:.1f}%)")
-    # else:
-        # st.write("No text detected")
-# 
+
+def show_text_analysis(image, settings):
+    st.subheader("Text Analysis")
+    text_data = detect_text(image)
+    
+    if text_data['text']:
+        st.write("Detected Text:")
+        for text, conf in zip(text_data['text'], text_data['confidences']):
+            if conf >= settings['min_text_confidence']:
+                st.write(f"- {text} (Confidence: {conf:.1f}%)")
+    else:
+        st.write("No text detected")
+
 # def show_composition_analysis(image):
     # st.subheader("Composition Analysis")
     # composition = analyze_image_composition(image)
