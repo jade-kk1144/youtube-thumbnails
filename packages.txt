@@ -6,3 +6,4 @@ libxext6
 libxrender-dev
 python3-opencv
 scikit-learn
+pytube
