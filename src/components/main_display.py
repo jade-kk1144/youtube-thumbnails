@@ -25,7 +25,7 @@ def show_main_display(sidebar_state):
     try:
         thumbnail = get_thumbnail(video_id)
         st.image(thumbnail, caption="Video Thumbnail", use_container_width=True)
-        
+        ``
         # Create tabs for different analyses
         if any(sidebar_state['options'].values()):
             tabs = []
