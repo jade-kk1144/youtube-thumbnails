@@ -200,16 +200,16 @@ def show_face_analysis(image, settings):
         st.write("No faces detected")
 
 def show_text_analysis(image, settings):
-    st.subheader("Text Analysis")
+    st.subheader("Text Detection")
     text_data = detect_text(image)
-    st.write(text_data)
+    # st.write(str(text_data))
     if text_data['text']:
         st.write("Detected Text:")
         for text, conf in zip(text_data['text'], text_data['confidences']):
-            if conf >= settings['min_text_confidence']:
+            if conf >= settings['min_text_confidence']/100:
                 st.write(f"- {text} (Confidence: {conf:.1f}%)")
     else:
-        st.write("No text detected")
+        st.write("No text detected/low confidence")
 
 
 def show_composition_analysis(image):

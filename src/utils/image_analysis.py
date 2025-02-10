@@ -43,52 +43,38 @@ def analyze_colors(image: Image.Image, n_colors: int = 5) -> List[Tuple[np.ndarr
     except Exception as e:
         logging.error(f"Error in color analysis: {str(e)}")
         return []
-
-def detect_text(image: Image.Image) -> Dict[str, any]:
-    """
-    Detect text in the image using EasyOCR.
     
-    Args:
-        image: PIL Image object
-        
-    Returns:
-        Dictionary containing detected text, confidence scores and positions
-    """
+def detect_text(image: Image.Image) -> Dict[str, any]:
     try:
-        # Convert PIL Image to numpy array
         img_array = np.array(image)
-        
-        # Initialize EasyOCR
-        reader = easyocr.Reader(['en'],gpu ='False')
-        
-        # Detect text
-        results = reader.readtext(img_array)
+        reader = easyocr.Reader(['en'], gpu= False )
+        results = reader.readtext(image)
         
         filtered_text = []
         confidences = []
         positions = []
         
         for bbox, text, conf in results:
-            if conf > 0.5:  # Confidence threshold
-                filtered_text.append(text)
-                confidences.append(conf)
-                positions.append({
-                    'left': int(bbox[0][0]),
-                    'top': int(bbox[0][1]),
-                    'width': int(bbox[2][0] - bbox[0][0]),
-                    'height': int(bbox[2][1] - bbox[0][1])
-                })
-        
+            filtered_text.append(text)
+            confidences.append(conf)
+            positions.append({
+                'left': int(bbox[0][0]),
+                'top': int(bbox[0][1]),
+                'width': int(bbox[2][0] - bbox[0][0]),
+                'height': int(bbox[2][1] - bbox[0][1])
+            })
+            
         return {
             'text': filtered_text,
             'confidences': confidences,
             'positions': positions,
             'full_text': ' '.join(filtered_text)
         }
-        
     except Exception as e:
         logging.error(f"Error in text detection: {str(e)}")
         return {'text': [], 'confidences': [], 'positions': [], 'full_text': ''}
+
+
 
 def analyze_image_composition(image: Image.Image) -> Dict[str, float]:
     """
