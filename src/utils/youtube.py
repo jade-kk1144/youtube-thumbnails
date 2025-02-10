@@ -6,7 +6,9 @@ from io import BytesIO
 from pytube import YouTube, Channel
 import pandas as pd
 from typing import List, Dict
-import re
+from googleapiclient.discovery import build
+from googleapiclient.errors import HttpError
+import isodate
 
 def extract_video_id(url):
     patterns = [
@@ -131,3 +133,148 @@ def display_channel_analysis(url: str):
         analysis = analyze_video_performance(videos)
         return videos, analysis
     return None, None
+
+def get_video_details(video_id):
+    """
+    Get video details using YouTube API.
+    
+    Args:
+        video_id (str): YouTube video ID
+    Returns:
+        dict: Video details including channel info and engagement metrics
+    """
+    try:
+        youtube = build('youtube', 'v3', developerKey=st.secrets["YOUTUBE_API_KEY"])
+        
+        # Get video statistics and details
+        video_request = youtube.videos().list(
+            part="snippet,statistics,contentDetails",
+            id=video_id
+        )
+        video_response = video_request.execute()
+        
+        if not video_response.get('items'):
+            st.error("Video not found")
+            return None
+            
+        video_data = video_response['items'][0]
+        snippet = video_data['snippet']
+        statistics = video_data['statistics']
+        
+        # Get channel info
+        channel_request = youtube.channels().list(
+            part="snippet,statistics",
+            id=snippet['channelId']
+        )
+        channel_response = channel_request.execute()
+        channel_data = channel_response['items'][0]
+        
+        # Parse duration
+        duration = isodate.parse_duration(video_data['contentDetails']['duration'])
+        duration_str = str(duration).split('.')[0]  # Remove microseconds
+        
+        # Format date
+        published_at = snippet['publishedAt']
+        published_date = datetime.strptime(published_at, "%Y-%m-%dT%H:%M:%SZ")
+        formatted_date = published_date.strftime("%B %d, %Y")
+        
+        video_details = {
+            # Video info
+            'title': snippet['title'],
+            'description': snippet['description'],
+            'published_date': formatted_date,
+            'duration': duration_str,
+            'view_count': int(statistics.get('viewCount', 0)),
+            'like_count': int(statistics.get('likeCount', 0)),
+            'comment_count': int(statistics.get('commentCount', 0)),
+            'thumbnail_url': snippet['thumbnails'].get('maxres', 
+                            snippet['thumbnails'].get('high', 
+                            snippet['thumbnails'].get('default')))['url'],
+            
+            # Channel info
+            'channel_name': snippet['channelTitle'],
+            'channel_id': snippet['channelId'],
+            'channel_thumbnail': channel_data['snippet']['thumbnails']['default']['url'],
+            'subscriber_count': int(channel_data['statistics'].get('subscriberCount', 0)),
+            
+            # Additional metadata
+            'tags': snippet.get('tags', []),
+            'category_id': snippet.get('categoryId'),
+            'is_live': snippet.get('liveBroadcastContent') == 'live'
+        }
+        
+        return video_details
+        
+    except HttpError as e:
+        st.error(f"YouTube API error: {e.resp.status} - {e.content}")
+        return None
+    except Exception as e:
+        st.error(f"Error: {str(e)}")
+        return None
+
+def format_counts(num):
+    """Format large numbers to K, M, B format"""
+    if num >= 1_000_000_000:
+        return f"{num/1_000_000_000:.1f}B"
+    elif num >= 1_000_000:
+        return f"{num/1_000_000:.1f}M"
+    elif num >= 1_000:
+        return f"{num/1_000:.1f}K"
+    return str(num)
+
+# Usage in main display
+def show_main_display(sidebar_state):
+    if not sidebar_state['url']:
+        st.info("Enter a YouTube URL in the sidebar to begin analysis")
+        return
+
+    video_id = extract_video_id(sidebar_state['url'])
+    if not video_id:
+        st.error("Invalid YouTube URL")
+        return
+
+    try:
+        col1, col2 = st.columns([1, 1])
+        
+        with col1:
+            video_details = get_video_details(video_id)
+            if video_details:
+                # Channel info with thumbnail
+                ch_col1, ch_col2 = st.columns([1, 4])
+                with ch_col1:
+                    st.image(video_details['channel_thumbnail'], width=50)
+                with ch_col2:
+                    st.markdown(f"**{video_details['channel_name']}**")
+                    st.markdown(f"{format_counts(video_details['subscriber_count'])} subscribers")
+                
+                # Video thumbnail
+                st.image(video_details['thumbnail_url'], use_container_width=True)
+                
+                # Video title and basic info
+                st.markdown(f"### {video_details['title']}")
+                st.markdown(
+                    f"**{format_counts(video_details['view_count'])}** views • "
+                    f"{video_details['duration']} • "
+                    f"{video_details['published_date']}"
+                )
+                
+                # Engagement metrics
+                metric_col1, metric_col2, metric_col3 = st.columns(3)
+                with metric_col1:
+                    st.metric("Likes", format_counts(video_details['like_count']))
+                with metric_col2:
+                    st.metric("Comments", format_counts(video_details['comment_count']))
+                with metric_col3:
+                    st.metric("Views", format_counts(video_details['view_count']))
+                
+                # Tags if available
+                if video_details['tags']:
+                    st.markdown("**Tags:**")
+                    st.markdown(", ".join(video_details['tags'][:5]))
+        
+        with col2:
+            # Your existing analysis tabs code here
+            pass
+            
+    except Exception as e:
+        st.error(f"Error processing video: {str(e)}")

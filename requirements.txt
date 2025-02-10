@@ -1,12 +1,29 @@
-streamlit
+# Core dependencies
+streamlit>=1.30.0
+google-api-python-client>=2.100.0
+google-auth-httplib2>=0.1.0
+google-auth-oauthlib>=1.0.0
+requests>=2.26.0
+
+# API and data processing
+google-generativeai>=0.3.0
+isodate>=0.6.1
+python-dotenv>=1.0.0
+pytube
+
+# Image processing
+opencv-python>=4.8.0
 opencv-python-headless>=4.5.0
-numpy>=1.21.0
-streamlit>=1.24.0
-pillow>=9.0.0
-scikit-learn>=1.0.0
+numpy>=1.24.0
+Pillow>=10.0.0
 face_recognition>=1.3.0
 pytesseract>=0.3.8
-matplotlib>=3.4.0
-seaborn>=0.11.0
-requests>=2.26.0
-pytube
+
+# Data handling
+pandas>=2.0.0
+pyyaml>=6.0.0
+scikit-learn>=1.0.0
+
+# Optional but recommended
+streamlit-extras>=0.3.0  # For enhanced UI components
+python-magic>=0.4.27    # For file type detection
