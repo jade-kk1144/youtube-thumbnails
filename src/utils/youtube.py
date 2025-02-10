@@ -1,14 +1,13 @@
-# utils/youtube.py (excerpt)
 import re
 import requests
 from PIL import Image
 from io import BytesIO
-# from pytube import YouTube, Channel
 import pandas as pd
 from typing import List, Dict
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 import isodate
+from datetime import datetime
 
 def extract_video_id(url):
     patterns = [
@@ -31,130 +30,81 @@ def get_thumbnail(video_id):
         response = requests.get(url)
     return Image.open(BytesIO(response.content))
 
-
-
-def extract_channel_id(url: str) -> str:
-    """Extract channel ID from a YouTube video or channel URL."""
-    if 'youtube.com/watch' in url:
-        # If it's a video URL, first get the video object
-        yt = YouTube(url)
-        # Then get the channel URL from the video
-        channel_url = yt.channel_url
-    else:
-        channel_url = url
-    
-    try:
-        c = Channel(channel_url)
-        return c.channel_id
-    except Exception as e:
-        print(f"Error extracting channel ID: {e}")
-        return None
-
-def get_channel_videos(url: str, limit: int = 10) -> List[Dict]:
+def get_channel_videos(channel_id: str, limit: int = 10) -> List[Dict]:
+    """Get latest videos from a YouTube channel using YouTube API."""
+    import streamlit as st
     """
-    Get the latest videos from a YouTube channel.
+    Get latest videos from a YouTube channel using YouTube API.
     
     Args:
-        url (str): YouTube video or channel URL
-        limit (int): Number of latest videos to fetch (default: 10)
-    
-    Returns:
-        List[Dict]: List of video information dictionaries
+        channel_id (str): YouTube channel ID
+        api_key (str): YouTube API key
+        limit (int): Number of videos to fetch
     """
-    channel_id = extract_channel_id(url)
-    if not channel_id:
-        return []
-    
-    channel = Channel(f"https://www.youtube.com/channel/{channel_id}")
+    youtube = build('youtube', 'v3', developerKey=st.secrets["youtube_api"])
     videos_data = []
     
     try:
-        # Get video URLs from channel
-        video_urls = list(channel.video_urls[:limit])
+        # Get channel's uploads playlist ID
+        channel_response = youtube.channels().list(
+            part="contentDetails",
+            id=channel_id
+        ).execute()
         
-        # Fetch detailed information for each video
-        for video_url in video_urls:
-            try:
-                yt = YouTube(video_url)
+        uploads_playlist_id = channel_response['items'][0]['contentDetails']['relatedPlaylists']['uploads']
+        
+        # Get videos from uploads playlist
+        request = youtube.playlistItems().list(
+            part="snippet,contentDetails",
+            playlistId=uploads_playlist_id,
+            maxResults=limit
+        )
+        
+        while request and len(videos_data) < limit:
+            response = request.execute()
+            
+            video_ids = [item['contentDetails']['videoId'] for item in response['items']]
+            
+            # Get detailed video statistics
+            stats_response = youtube.videos().list(
+                part="statistics,contentDetails",
+                id=','.join(video_ids)
+            ).execute()
+            
+            # Combine video data
+            for item, stats in zip(response['items'], stats_response['items']):
                 video_info = {
-                    'title': yt.title,
-                    'views': yt.views,
-                    'thumbnail_url': yt.thumbnail_url,
-                    'video_id': yt.video_id,
-                    'url': video_url,
-                    'publish_date': yt.publish_date
+                    'title': item['snippet']['title'],
+                    'video_id': item['contentDetails']['videoId'],
+                    'publish_date': item['snippet']['publishedAt'],
+                    'thumbnail_url': item['snippet']['thumbnails']['high']['url'],
+                    'views': int(stats['statistics'].get('viewCount', 0)),
+                    'likes': int(stats['statistics'].get('likeCount', 0)),
+                    'comments': int(stats['statistics'].get('commentCount', 0))
                 }
                 videos_data.append(video_info)
-            except Exception as e:
-                print(f"Error processing video {video_url}: {e}")
-                continue
-                
-        # Convert to DataFrame for easier analysis
-        df = pd.DataFrame(videos_data)
-        if not df.empty:
-            df['publish_date'] = pd.to_datetime(df['publish_date'])
-            df = df.sort_values('publish_date', ascending=False)
             
-        return df.to_dict('records')
-        
-    except Exception as e:
-        print(f"Error fetching channel videos: {e}")
+            request = youtube.playlistItems().list_next(request, response)
+            
+        return videos_data
+            
+    except HttpError as e:
+        print(f"YouTube API error: {e}")
         return []
 
-def analyze_video_performance(videos_data: List[Dict]) -> Dict:
+def get_video_details(video_id: str, api_key: str) -> Dict:
     """
-    Analyze video performance metrics.
-    
-    Args:
-        videos_data (List[Dict]): List of video information dictionaries
-    
-    Returns:
-        Dict: Analysis results
+    Get comprehensive video details using YouTube API.
     """
-    if not videos_data:
-        return {}
+    youtube = build('youtube', 'v3', developerKey=api_key)
     
-    df = pd.DataFrame(videos_data)
-    
-    analysis = {
-        'total_views': df['views'].sum(),
-        'average_views': df['views'].mean(),
-        'most_viewed': df.loc[df['views'].idxmax()]['title'],
-        'least_viewed': df.loc[df['views'].idxmin()]['title'],
-        'total_videos': len(df)
-    }
-    
-    return analysis
-
-# Example usage in your Streamlit app:
-def display_channel_analysis(url: str):
-    videos = get_channel_videos(url)
-    if videos:
-        analysis = analyze_video_performance(videos)
-        return videos, analysis
-    return None, None
-
-def get_video_details(video_id):
-    """
-    Get video details using YouTube API.
-    
-    Args:
-        video_id (str): YouTube video ID
-    Returns:
-        dict: Video details including channel info and engagement metrics
-    """
     try:
-         # Build the YouTube service
-        youtube = build('youtube', 'v3', developerKey = st.secrets["YOUTUBE_API_KEY"])
-         # Access the API key from secrets
-        video_request = youtube.videos().list(
+        video_response = youtube.videos().list(
             part="snippet,statistics,contentDetails",
             id=video_id
-        )
-        video_response = video_request.execute()
-        st.write(video_response)
+        ).execute()
+        
         if not video_response.get('items'):
-            st.error("Video not found")
             return None
             
         video_data = video_response['items'][0]
@@ -162,57 +112,64 @@ def get_video_details(video_id):
         statistics = video_data['statistics']
         
         # Get channel info
-        # channel_request = youtube.channels().list(
-            # part="snippet,statistics",
-            # id=snippet['channelId']
-        # )
-        # channel_response = channel_request.execute()
-        # channel_data = channel_response['items'][0]
+        channel_response = youtube.channels().list(
+            part="snippet,statistics",
+            id=snippet['channelId']
+        ).execute()
+        channel_data = channel_response['items'][0]
         
-        # Parse duration
+        # Parse duration and date
         duration = isodate.parse_duration(video_data['contentDetails']['duration'])
-        duration_str = str(duration).split('.')[0]  # Remove microseconds
+        published_date = datetime.strptime(snippet['publishedAt'], "%Y-%m-%dT%H:%M:%SZ")
         
-        # Format date
-        published_at = snippet['publishedAt']
-        published_date = datetime.strptime(published_at, "%Y-%m-%dT%H:%M:%SZ")
-        formatted_date = published_date.strftime("%B %d, %Y")
-        
-        video_details = {
-            # Video info
+        return {
             'title': snippet['title'],
             'description': snippet['description'],
-            'published_date': formatted_date,
-            'duration': duration_str,
+            'published_date': published_date.strftime("%B %d, %Y"),
+            'duration': str(duration).split('.')[0],
             'view_count': int(statistics.get('viewCount', 0)),
             'like_count': int(statistics.get('likeCount', 0)),
             'comment_count': int(statistics.get('commentCount', 0)),
             'thumbnail_url': snippet['thumbnails'].get('maxres', 
-                            snippet['thumbnails'].get('high', 
-                            snippet['thumbnails'].get('default')))['url'],
-            
-            # Channel info
-            # 'channel_name': snippet['channelTitle'],
-            # 'channel_id': snippet['channelId'],
-            # 'channel_thumbnail': channel_data['snippet']['thumbnails']['default']['url'],
-            # 'subscriber_count': int(channel_data['statistics'].get('subscriberCount', 0)),
-            
-            # Additional metadata
+                           snippet['thumbnails'].get('high', 
+                           snippet['thumbnails'].get('default')))['url'],
+            'channel_name': snippet['channelTitle'],
+            'channel_id': snippet['channelId'],
+            'channel_thumbnail': channel_data['snippet']['thumbnails']['default']['url'],
+            'subscriber_count': int(channel_data['statistics'].get('subscriberCount', 0)),
             'tags': snippet.get('tags', []),
             'category_id': snippet.get('categoryId'),
             'is_live': snippet.get('liveBroadcastContent') == 'live'
         }
         
-        return video_details
-        
     except HttpError as e:
-        st.error(f"YouTube API error: {e.resp.status} - {e.content}")
-        return None
-    except Exception as e:
-        st.error(f"Error: {str(e)}")
+        print(f"YouTube API error: {e}")
         return None
 
-def format_counts(num):
+def analyze_video_performance(videos_data: List[Dict]) -> Dict:
+    """
+    Analyze video performance metrics.
+    """
+    if not videos_data:
+        return {}
+    
+    df = pd.DataFrame(videos_data)
+    df['publish_date'] = pd.to_datetime(df['publish_date'])
+    
+    analysis = {
+        'total_views': df['views'].sum(),
+        'average_views': df['views'].mean(),
+        'most_viewed': df.loc[df['views'].idxmax()]['title'],
+        'least_viewed': df.loc[df['views'].idxmin()]['title'],
+        'total_videos': len(df),
+        'average_likes': df['likes'].mean(),
+        'average_comments': df['comments'].mean(),
+        'engagement_rate': (df['likes'].sum() + df['comments'].sum()) / df['views'].sum() * 100
+    }
+    
+    return analysis
+
+def format_view_counts(num: int) -> str:
     """Format large numbers to K, M, B format"""
     if num >= 1_000_000_000:
         return f"{num/1_000_000_000:.1f}B"

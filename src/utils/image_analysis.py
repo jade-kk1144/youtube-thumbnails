@@ -3,7 +3,7 @@
 import numpy as np
 from PIL import Image
 # import face_recognition
-# import pytesseract
+import pytesseract
 from sklearn.cluster import KMeans
 from typing import List, Tuple, Dict
 import logging

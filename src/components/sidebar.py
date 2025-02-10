@@ -13,7 +13,8 @@ def show_sidebar():
         st.subheader("Time Range")
         date_range = st.date_input(
             "Select date range",
-            value=(datetime.now() - timedelta(days=7), datetime.now()),
+            value=(datetime.now() - timedelta(days=14), datetime.now()),
+            min_value=datetime.now() - timedelta(weeks=52),
             max_value=datetime.now()
         )
         

@@ -1,11 +1,12 @@
 # src/components/main_display.py
 import streamlit as st
-from utils.youtube import extract_video_id, get_thumbnail, get_video_details
+from utils.youtube import extract_video_id, get_thumbnail, get_video_details, format_view_counts
 from utils.image_analysis import (
     analyze_colors
     ,detect_faces
     ,detect_text
-    , analyze_image_composition
+    ,analyze_image_composition
+    ,get_composition_insights
 )
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
@@ -26,7 +27,7 @@ def show_main_display(sidebar_state):
 
     try:
         # Create two columns
-        col1, col2 = st.columns([1, 1])
+        col1, col2 = st.columns([0.3, 0.7])
 
         with col1:
             st.subheader("Video Information")
@@ -39,18 +40,28 @@ def show_main_display(sidebar_state):
             st.image(thumbnail, caption="Video Thumbnail", use_container_width=True)
             
             try:
-                video_details = get_video_details(video_id)                                    
+                video_details = get_video_details(video_id, api_key=st.secrets["YOUTUBE_API_KEY"])
+                st.markdown(f"**Channel:** {video_details['channel_name']}")
+                st.markdown(f"**Title:** {video_details['title']}")
+                st.markdown(f"**Views:** {format_view_counts(video_details['view_count'])}")
+                st.markdown(
+                         f"""
+                         **Likes:** {format_view_counts(video_details['like_count'])}  
+                         **Comments:** {format_view_counts(video_details['comment_count'])}
+                         """
+                         )                       
+                st.markdown(f"**Published:** {(video_details['published_date'])}")  
+                st.write(video_details)                            
             except:
-                st.write(video_details)
                 st.error('api fail')
             # 
             # try:
             #   
             # Display video information
-            # st.markdown(f"**Channel:** {video_details['channel_name']}")
-            # st.markdown(f"**Title:** {video_details['title']}")
-            # st.markdown(f"**Views:** {format_view_count(video_details['view_count'])}")
-            # st.markdown(f"**Published:** {format_date(video_details['published_date'])}")
+           
+           
+           
+           
 
         with col2:
             st.subheader("Analysis Results")
@@ -155,10 +166,10 @@ def show_face_analysis(image, settings):
         
         # Display image with face boxes
     
-            
+        # 
         np_image = np.array(image)
-        for top, right, bottom, left in face_locations:
-            cv2.rectangle(np_image, (left, top), (right, bottom), (0, 255, 0), 2)
+        # for top, right, bottom, left in face_locations:
+            # cv2.rectangle(np_image, (left, top), (right, bottom), (0, 255, 0), 2)
         st.image(np_image, caption="Faces Detected", use_column_width=True)
     else:
         st.write("No faces detected")
@@ -175,15 +186,35 @@ def show_text_analysis(image, settings):
     else:
         st.write("No text detected")
 
+
 def show_composition_analysis(image):
     st.subheader("Composition Analysis")
     composition = analyze_image_composition(image)
+    insights = get_composition_insights(composition)
     
-    # Display composition metrics
+    # Display metrics and insights in columns
     col1, col2 = st.columns(2)
+    
     with col1:
         st.metric("Horizontal Balance", f"{(1 - composition['balance_horizontal']) * 100:.1f}%")
+        st.markdown(f"*{insights['balance']}*")
+        
         st.metric("Rule of Thirds Usage", f"{composition['thirds_intensity'] * 100:.1f}%")
+        st.markdown(f"*{insights['composition']}*")
+    
     with col2:
         st.metric("Vertical Balance", f"{(1 - composition['balance_vertical']) * 100:.1f}%")
+        
         st.metric("Overall Brightness", f"{composition['overall_brightness'] * 100:.1f}%")
+        st.markdown(f"*{insights['brightness']}*")
+    
+    # Display contrast insight if available
+    if 'contrast' in insights:
+        st.markdown(f"**Contrast Analysis:** *{insights['contrast']}*")
+    
+    # Display face detection results if available
+    face_locations = detect_faces(image)
+    if face_locations:
+        st.markdown(f"**Faces Detected:** {len(face_locations)}")
+        if len(face_locations) > 0:
+            st.markdown("*Consider positioning faces along rule-of-thirds points for better engagement*")
