@@ -120,6 +120,7 @@ def show_main_display(sidebar_state):
                             if sidebar_state['options']['color_analysis']:
                                 with tabs[current_tab]:
                                     show_color_analysis(thumbnail, sidebar_state['settings'])   
+                            current_tab += 1
                         
                     # if sidebar_state['options']['face_detection']:
                         # with tabs[current_tab]:
@@ -201,7 +202,7 @@ def show_face_analysis(image, settings):
 def show_text_analysis(image, settings):
     st.subheader("Text Analysis")
     text_data = detect_text(image)
-    
+    st.write(text_data)
     if text_data['text']:
         st.write("Detected Text:")
         for text, conf in zip(text_data['text'], text_data['confidences']):
