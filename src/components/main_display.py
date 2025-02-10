@@ -39,11 +39,9 @@ def show_main_display(sidebar_state):
             st.image(thumbnail, caption="Video Thumbnail", use_container_width=True)
             
             try:
-                video_details = get_video_details(video_id)      
-                              
-                st.write(video_details)  # Add this line
+                video_details = get_video_details(video_id)                                    
             except:
-                st.text(video_request)
+                st.write(video_details)
                 st.error('api fail')
             # 
             # try:
