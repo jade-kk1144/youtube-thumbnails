@@ -25,6 +25,8 @@ def show_main_display(sidebar_state):
         
     # Extract video ID and get thumbnail
     video_id = extract_video_id(sidebar_state['url'])
+
+
     if not video_id:
         st.error("Invalid YouTube URL")
         return
@@ -55,7 +57,7 @@ def show_main_display(sidebar_state):
                          """
                          )                       
                 st.markdown(f"**Published:** {(video_details['published_date'])}")  
-                st.write(video_details)                            
+                # st.write(video_details)                            
             except:
                 st.error('api fail')
             # 
@@ -63,9 +65,7 @@ def show_main_display(sidebar_state):
             #   
             # Display video information
            
-           
-           
-           
+        
 
         with col2:
             st.subheader("Analysis Results")
@@ -76,41 +76,60 @@ def show_main_display(sidebar_state):
                 if any(sidebar_state['options'].values()):
                     tabs = []
                     tab_names = ["Metrics"]
-                    if sidebar_state['options']['color_analysis']:
-                        tab_names.append("Colors")
-                    if sidebar_state['options']['face_detection']:
-                        tab_names.append("Faces")
-                    if sidebar_state['options']['text_detection']:
-                        tab_names.append("Text")
                     if sidebar_state['options']['composition']:
                         tab_names.append("Composition")
+                    # if sidebar_state['options']['color_analysis']:
+                        # tab_names.append("Colors")
+                    # if sidebar_state['options']['face_detection']:
+                        # tab_names.append("Faces")
+                    if sidebar_state['options']['text_detection']:
+                        tab_names.append("Text")
+                    
+                    
                         
                     tabs = st.tabs(tab_names)
                     
                     # Fill each tab with its analysis
                     current_tab = 0
                     with tabs[0]:
-                        display_metrics_tab(video_data)
+                        if sidebar_state['compare_url']:
+                            compare_video_id = extract_video_id(sidebar_state['compare_url'])
+                            compare_video_details = get_video_details(compare_video_id, api_key=st.secrets["YOUTUBE_API_KEY"])
+                            comparision_video = calculate_video_metrics(compare_video_details)
+                            display_metrics_tab(video_data,comparision_video)
+                            # Display thumbnail with half width
+                            col1, col2 = st.columns([0.4, 0.6])
+                            with col1:
+                                compare_thumbnail =get_thumbnail(compare_video_id)
+                                st.image(compare_thumbnail, caption="Compare Thumbnail", use_container_width=True)
+                            with col2:
+                                st.markdown(f"**Title:** {video_details['title']}")
+                                st.markdown(f"**Views:** {format_view_counts(video_details['view_count'])}")
+                                st.markdown(
+                                         f"""
+                                         **Likes:** {format_view_counts(video_details['like_count'])}  **Comments:** {format_view_counts(video_details['comment_count'])}
+                                         """
+                                         )                       
+                                st.markdown(f"**Published:** {(video_details['published_date'])}")  
+                        else:
+                            display_metrics_tab(video_data)
                         current_tab += 1
-                    if sidebar_state['options']['color_analysis']:
-                        with tabs[current_tab]:
-                            show_color_analysis(thumbnail, sidebar_state['settings'])
-                        current_tab += 1
-                        
-                    if sidebar_state['options']['face_detection']:
-                        with tabs[current_tab]:
-                            show_face_analysis(thumbnail, sidebar_state['settings'])
-                        current_tab += 1
-                        
-                    if sidebar_state['options']['text_detection']:
-                        with tabs[current_tab]:
-                            show_text_analysis(thumbnail, sidebar_state['settings'])
-                        current_tab += 1
-                        
                     if sidebar_state['options']['composition']:
                         with tabs[current_tab]:
                             show_composition_analysis(thumbnail)
+                            if sidebar_state['options']['color_analysis']:
+                                with tabs[current_tab]:
+                                    show_color_analysis(thumbnail, sidebar_state['settings'])   
                         
+                    # if sidebar_state['options']['face_detection']:
+                        # with tabs[current_tab]:
+                            # show_face_analysis(thumbnail, sidebar_state['settings'])
+                        # current_tab += 1
+                        # 
+                    if sidebar_state['options']['text_detection']:
+                        with tabs[current_tab]:
+                            show_text_analysis(thumbnail, sidebar_state['settings'])
+                        current_tab += 1                                                      
             except Exception as e:
                 st.error(f"Error processing thumbnail: {str(e)}")
     except Exception as e:
@@ -202,20 +221,20 @@ def show_composition_analysis(image):
     
     with col1:
         st.metric("Horizontal Balance", f"{(1 - composition['balance_horizontal']) * 100:.1f}%")
-        st.markdown(f"*{insights['balance']}*")
-        
+        st.markdown(f":blue[*{insights['balance']}*] ")
         st.metric("Rule of Thirds Usage", f"{composition['thirds_intensity'] * 100:.1f}%")
-        st.markdown(f"*{insights['composition']}*")
+        st.markdown(f":blue[*{insights['composition']}*] ")
     
     with col2:
         st.metric("Vertical Balance", f"{(1 - composition['balance_vertical']) * 100:.1f}%")
         
         st.metric("Overall Brightness", f"{composition['overall_brightness'] * 100:.1f}%")
-        st.markdown(f"*{insights['brightness']}*")
+        st.markdown(f":blue[*{insights['brightness']}*] ")
     
     # Display contrast insight if available
     if 'contrast' in insights:
         st.markdown(f"**Contrast Analysis:** *{insights['contrast']}*")
+        st.markdown(f":blue[*{insights['contrast']}*] ")
     
     # Display face detection results if available
     face_locations = detect_faces(image)
