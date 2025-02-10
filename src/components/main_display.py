@@ -1,6 +1,7 @@
 # src/components/main_display.py
 import streamlit as st
 import pandas as pd
+import matplotlib.pyplot as plt
 from utils.youtube import (
     extract_video_id, get_thumbnail, get_video_details, 
     format_view_counts, calculate_video_metrics,
@@ -36,51 +37,27 @@ def show_main_display(sidebar_state):
         video_details = get_video_details(video_id, api_key=st.secrets["YOUTUBE_API_KEY"])
         video_data = calculate_video_metrics(video_details)
         channel_id = video_data['channel_id']
-        video_chanel_data = get_video_stats(channel_id ,  api_key=st.secrets["YOUTUBE_API_KEY"])
-        
     except:
-        st.error('Failed to get data')
+        st.error('Failed to get video data')
+
+    try:
+        video_chanel_data = get_video_stats(channel_id ,  api_key=st.secrets["YOUTUBE_API_KEY"])
+    except:
+        st.error('Failed to get channel data')
     try:
         # Create two columns
-        col1, col2 = st.columns([0.3, 0.7])
+        if sidebar_state['compare_url']:
+            col1, col2, col3 = st.columns([0.3, 0.3,0.4])
+        else:
+            col1, col2 = st.columns(2)
 
         with col1:
             st.subheader("Channel Information")
-            display_dashboard(video_chanel_data)
-            st.subheader("Video Information")
-    
-            # Get video details
-            
-            thumbnail = get_thumbnail(video_id)
-
-            # Display thumbnail with half width
-            st.image(thumbnail, caption="Video Thumbnail", use_container_width=True)
-            
-            try:
-                st.markdown(f"**Channel:** {video_details['channel_name']}   **Subs:** {format_view_counts(video_details['subscriber_count'])}")
-                st.markdown(f"**Title:** {video_details['title']}")
-                st.markdown(f"**Views:** {format_view_counts(video_details['view_count'])}")
-                st.markdown(
-                         f"""
-                         **Likes:** {format_view_counts(video_details['like_count'])}  **Comments:** {format_view_counts(video_details['comment_count'])}
-                         """
-                         )                       
-                st.markdown(f"**Published:** {(video_details['published_date'])}")  
-                # st.markdown(video_chanel_data)
-                
-                # st.write(video_details)                            
-            except:
-                st.error('api fail')
-            # 
-            # try:
-            #   
-            # Display video information
-           
+            display_dashboard(video_chanel_data)                  
         
-
         with col2:
-            st.subheader("Analysis Results")
-        
+            show_video_info (video_details,video_id,caption = "Video Information")  
+            st.subheader("Analysis Results")    
             # Get and display thumbnail
             try:   
                 # Create tabs for different analyses
@@ -110,18 +87,6 @@ def show_main_display(sidebar_state):
                             display_metrics_tab(video_data,comparision_video)
                             # Display thumbnail with half width
                             col1, col2 = st.columns([0.4, 0.6])
-                            with col1:
-                                compare_thumbnail =get_thumbnail(compare_video_id)
-                                st.image(compare_thumbnail, caption="Compare Thumbnail", use_container_width=True)
-                            with col2:
-                                st.markdown(f"**Title:** {compare_video_details['title']}")
-                                st.markdown(f"**Views:** {format_view_counts(compare_video_details['view_count'])}")
-                                st.markdown(
-                                         f"""
-                                         **Likes:** {format_view_counts(compare_video_details['like_count'])}  **Comments:** {format_view_counts(compare_video_details['comment_count'])}
-                                         """
-                                         )                       
-                                st.markdown(f"**Published:** {(compare_video_details['published_date'])}")  
                         else:
                             display_metrics_tab(video_data)
                         current_tab += 1
@@ -222,6 +187,26 @@ def show_text_analysis(image, settings):
     else:
         st.write("No text detected/low confidence")
 
+def show_video_info (video_details,video_id,caption):
+    col1, col2  = st.columns(2)
+    # Get video thumbnail
+    with col1:
+        thumbnail = get_thumbnail(video_id)
+        # Display thumbnail with half width
+        st.image(thumbnail, caption= caption, use_container_width=True)
+    with col2:
+        try:
+            st.markdown(f"**Channel:** {video_details['channel_name']}   **Subs:** {format_view_counts(video_details['subscriber_count'])}")
+            st.markdown(f"**Title:** {video_details['title']}")
+            st.markdown(f"**Views:** {format_view_counts(video_details['view_count'])}")
+            st.markdown(
+                     f"""
+                     **Likes:** {format_view_counts(video_details['like_count'])}  **Comments:** {format_view_counts(video_details['comment_count'])}
+                     """
+                     )                       
+            st.markdown(f"**Published:** {(video_details['published_date'])}")               
+        except:
+            st.error('api fail')
 
 def show_composition_analysis(image):
     st.subheader("Composition Analysis")
@@ -329,7 +314,6 @@ def format_date(df):
    return df
 
 def display_dashboard(df):
-   st.title("Channel Performance")
    df = format_date(df)
    # Summary metrics
    avg_views = df['views'].sum()
@@ -344,17 +328,23 @@ def display_dashboard(df):
    col1,col2 = st.columns(2)
    col1.metric("Likes/View",f"{(df['likes'].sum()/df['views'].sum()*100):.2f}%")
    col2.metric("Comments/View",f"{(df['comments'].sum()/df['views'].sum()*100):.2f}%")
-   # Performance trends
-   metric = st.selectbox("Select Metric", ['views', 'likes', 'comments'])
-   chart_type = st.selectbox("Select Chart Type", 
-                            ['Line',  'Bar'])
-   # Create tooltip data
+   
+   df['like_ratio'] = (df['likes'] / df['views']) * 100
+   df['comment_ratio'] = (df['comments'] / df['views']) * 100
+   
+   col1,col2 = st.columns(2)
+   metric = st.selectbox("Select Metric", ['views', 'likes', 'comments','like_ratio','comment_ratio'])
+   chart_type = st.selectbox("Select Chart Type",  ['Line',  'Bar'])
+#    with col1:
+    #    metric = st.selectbox("Select Metric", ['views', 'likes', 'comments','like_ratio','comment_ratio'])
+#    with col2:
+    #    chart_type = st.selectbox("Select Chart Type",  ['Line',  'Bar'])
+#    Create tooltip data
    df['tooltip'] = df.apply(lambda x: f"Title: {x['title']}\nViews: {format_view_counts(x['views'])}", axis=1)
-#    x_col = st.selectbox("Select X-axis", ['published_at', 'title'])
    x_col = 'published_at'
-   # Prepare data
+#    Prepare data
    plot_df = df[[x_col, metric]].copy()
-
+# 
 #    Plot based on selection
    if chart_type == 'Line':
        st.line_chart(data=plot_df, x=x_col, y=metric)
@@ -364,7 +354,32 @@ def display_dashboard(df):
        st.bar_chart(data=plot_df, x=x_col, y=metric)
    else:  # Scatter
        st.scatter_chart(data=plot_df, x=x_col, y=metric)
-       
+   
+   
+   
+    # Plot bars for views
+#    fig, ax1 = plt.subplots(figsize=(10, 6))
+#    ax1.bar(df['display_date'], df['views'], color='skyblue', alpha=0.7)
+#    ax1.set_ylabel('Views', color='skyblue')
+#    
+#    Create second y-axis for ratios
+#    ax2 = ax1.twinx()
+#    
+#    Plot lines for engagement ratios
+#    like_ratio = (df['likes'] / df['views']) * 100
+#    comment_ratio = (df['comments'] / df['views']) * 100
+#    
+#    ax2.plot(df['display_date'], like_ratio, 'r-', label='Like/View %')
+#    ax2.plot(df['display_date'], comment_ratio, 'g-', label='Comment/View %')
+#    ax2.set_ylabel('Engagement Rate (%)')
+#    
+#    plt.title('Video Performance and Engagement Rates')
+#    plt.xticks(rotation=45)
+#    plt.legend()
+#    plt.tight_layout()
+#    
+#    st.pyplot(fig)
    # Data table
    st.subheader("Latest Videos Table")
-   st.dataframe(df[['display_date','views','likes','comments','title']])
+   st.dataframe(df[['display_date','views','likes','comments','title']],
+            hide_index=True)
