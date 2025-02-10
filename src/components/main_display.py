@@ -41,13 +41,12 @@ def show_main_display(sidebar_state):
             
             try:
                 video_details = get_video_details(video_id, api_key=st.secrets["YOUTUBE_API_KEY"])
-                st.markdown(f"**Channel:** {video_details['channel_name']}")
+                st.markdown(f"**Channel:** {video_details['channel_name']}   **Subs:** {format_view_counts(video_details['subscriber_count'])}")
                 st.markdown(f"**Title:** {video_details['title']}")
                 st.markdown(f"**Views:** {format_view_counts(video_details['view_count'])}")
                 st.markdown(
                          f"""
-                         **Likes:** {format_view_counts(video_details['like_count'])}  
-                         **Comments:** {format_view_counts(video_details['comment_count'])}
+                         **Likes:** {format_view_counts(video_details['like_count'])}  **Comments:** {format_view_counts(video_details['comment_count'])}
                          """
                          )                       
                 st.markdown(f"**Published:** {(video_details['published_date'])}")  

@@ -34,7 +34,8 @@ def show_sidebar():
                 'min_face_confidence': st.slider("Face detection confidence", 0.0, 1.0, 0.5),
                 'min_text_confidence': st.slider("Text detection confidence", 0, 100, 50)
             }
-        
+        # URL input
+        compare_url = st.text_input("Enter Comparison YouTube URL")
         return {
             'url': url,
             'date_range': date_range,
