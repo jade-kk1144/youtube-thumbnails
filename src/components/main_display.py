@@ -7,6 +7,8 @@ from utils.image_analysis import (
     ,detect_text
     , analyze_image_composition
 )
+
+
 # 
 def show_main_display(sidebar_state):
     st.title("Thumbnail Analysis Results")
@@ -21,53 +23,75 @@ def show_main_display(sidebar_state):
         st.error("Invalid YouTube URL")
         return
 
-    
-        
-    # Get and display thumbnail
     try:
-        thumbnail = get_thumbnail(video_id)
-        st.image(thumbnail, caption="Video Thumbnail", use_container_width=True)
+        # Create two columns
+        col1, col2 = st.columns([1, 1])
+
+        with col1:
+            st.subheader("Video Information")
+            
+            # Get video details
+            
+            thumbnail = get_thumbnail(video_id)
+            
+            # Display thumbnail with half width
+            st.image(thumbnail, caption="Video Thumbnail", use_container_width=True)
+            # try:
+            # video_details = get_video_details(video_id)  
+            # Display video information
+            # st.markdown(f"**Channel:** {video_details['channel_name']}")
+            # st.markdown(f"**Title:** {video_details['title']}")
+            # st.markdown(f"**Views:** {format_view_count(video_details['view_count'])}")
+            # st.markdown(f"**Published:** {format_date(video_details['published_date'])}")
+
+        with col2:
+            st.subheader("Analysis Results")
         
-        # Create tabs for different analyses
-        if any(sidebar_state['options'].values()):
-            tabs = []
-            tab_names = []
-            
-            if sidebar_state['options']['color_analysis']:
-                tab_names.append("Colors")
-            if sidebar_state['options']['face_detection']:
-                tab_names.append("Faces")
-            if sidebar_state['options']['text_detection']:
-                tab_names.append("Text")
-            if sidebar_state['options']['composition']:
-                tab_names.append("Composition")
-                
-            tabs = st.tabs(tab_names)
-            
-            # Fill each tab with its analysis
-            current_tab = 0
-            
-            if sidebar_state['options']['color_analysis']:
-                with tabs[current_tab]:
-                    show_color_analysis(thumbnail, sidebar_state['settings'])
-                current_tab += 1
-                
-            if sidebar_state['options']['face_detection']:
-                with tabs[current_tab]:
-                    show_face_analysis(thumbnail, sidebar_state['settings'])
-                current_tab += 1
-                
-            if sidebar_state['options']['text_detection']:
-                with tabs[current_tab]:
-                    show_text_analysis(thumbnail, sidebar_state['settings'])
-                current_tab += 1
-                
-            if sidebar_state['options']['composition']:
-                with tabs[current_tab]:
-                    show_composition_analysis(thumbnail)
-                
+            # Get and display thumbnail
+            try:   
+                # Create tabs for different analyses
+                if any(sidebar_state['options'].values()):
+                    tabs = []
+                    tab_names = []
+                    
+                    if sidebar_state['options']['color_analysis']:
+                        tab_names.append("Colors")
+                    if sidebar_state['options']['face_detection']:
+                        tab_names.append("Faces")
+                    if sidebar_state['options']['text_detection']:
+                        tab_names.append("Text")
+                    if sidebar_state['options']['composition']:
+                        tab_names.append("Composition")
+                        
+                    tabs = st.tabs(tab_names)
+                    
+                    # Fill each tab with its analysis
+                    current_tab = 0
+                    
+                    if sidebar_state['options']['color_analysis']:
+                        with tabs[current_tab]:
+                            show_color_analysis(thumbnail, sidebar_state['settings'])
+                        current_tab += 1
+                        
+                    if sidebar_state['options']['face_detection']:
+                        with tabs[current_tab]:
+                            show_face_analysis(thumbnail, sidebar_state['settings'])
+                        current_tab += 1
+                        
+                    if sidebar_state['options']['text_detection']:
+                        with tabs[current_tab]:
+                            show_text_analysis(thumbnail, sidebar_state['settings'])
+                        current_tab += 1
+                        
+                    if sidebar_state['options']['composition']:
+                        with tabs[current_tab]:
+                            show_composition_analysis(thumbnail)
+                        
+            except Exception as e:
+                st.error(f"Error processing thumbnail: {str(e)}")
     except Exception as e:
-        st.error(f"Error processing thumbnail: {str(e)}")
+        st.error("Error")
+
 
 def show_color_analysis(image, settings):
     st.subheader("Color Analysis")
