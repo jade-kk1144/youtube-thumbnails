@@ -5,7 +5,7 @@ from utils.image_analysis import (
     analyze_colors
     # detect_faces,
     ,detect_text
-    # analyze_image_composition
+    , analyze_image_composition
 )
 # 
 def show_main_display(sidebar_state):
@@ -33,12 +33,12 @@ def show_main_display(sidebar_state):
             
             if sidebar_state['options']['color_analysis']:
                 tab_names.append("Colors")
-            # if sidebar_state['options']['face_detection']:
-                # tab_names.append("Faces")
-            # if sidebar_state['options']['text_detection']:
-                # tab_names.append("Text")
-            # if sidebar_state['options']['composition']:
-                # tab_names.append("Composition")
+            if sidebar_state['options']['face_detection']:
+                tab_names.append("Faces")
+            if sidebar_state['options']['text_detection']:
+                tab_names.append("Text")
+            if sidebar_state['options']['composition']:
+                tab_names.append("Composition")
                 
             tabs = st.tabs(tab_names)
             
@@ -50,20 +50,20 @@ def show_main_display(sidebar_state):
                     show_color_analysis(thumbnail, sidebar_state['settings'])
                 current_tab += 1
                 
-            # if sidebar_state['options']['face_detection']:
-                # with tabs[current_tab]:
-                    # show_face_analysis(thumbnail, sidebar_state['settings'])
-                # current_tab += 1
-                # 
+            if sidebar_state['options']['face_detection']:
+                with tabs[current_tab]:
+                    show_face_analysis(thumbnail, sidebar_state['settings'])
+                current_tab += 1
+                
             if sidebar_state['options']['text_detection']:
                 with tabs[current_tab]:
                     show_text_analysis(thumbnail, sidebar_state['settings'])
                 current_tab += 1
                 
-            # if sidebar_state['options']['composition']:
-                # with tabs[current_tab]:
-                    # show_composition_analysis(thumbnail)
-                # 
+            if sidebar_state['options']['composition']:
+                with tabs[current_tab]:
+                    show_composition_analysis(thumbnail)
+                
     except Exception as e:
         st.error(f"Error processing thumbnail: {str(e)}")
 
@@ -142,15 +142,15 @@ def show_text_analysis(image, settings):
     else:
         st.write("No text detected")
 
-# def show_composition_analysis(image):
-    # st.subheader("Composition Analysis")
-    # composition = analyze_image_composition(image)
-    # 
+def show_composition_analysis(image):
+    st.subheader("Composition Analysis")
+    composition = analyze_image_composition(image)
+    
     # Display composition metrics
-    # col1, col2 = st.columns(2)
-    # with col1:
-        # st.metric("Horizontal Balance", f"{(1 - composition['balance_horizontal']) * 100:.1f}%")
-        # st.metric("Rule of Thirds Usage", f"{composition['thirds_intensity'] * 100:.1f}%")
-    # with col2:
-        # st.metric("Vertical Balance", f"{(1 - composition['balance_vertical']) * 100:.1f}%")
-        # st.metric("Overall Brightness", f"{composition['overall_brightness'] * 100:.1f}%")
+    col1, col2 = st.columns(2)
+    with col1:
+        st.metric("Horizontal Balance", f"{(1 - composition['balance_horizontal']) * 100:.1f}%")
+        st.metric("Rule of Thirds Usage", f"{composition['thirds_intensity'] * 100:.1f}%")
+    with col2:
+        st.metric("Vertical Balance", f"{(1 - composition['balance_vertical']) * 100:.1f}%")
+        st.metric("Overall Brightness", f"{composition['overall_brightness'] * 100:.1f}%")

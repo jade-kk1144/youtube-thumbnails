@@ -85,9 +85,55 @@ def detect_text(image: Image.Image) -> Dict[str, any]:
         logging.error(f"Error in text detection: {str(e)}")
         return {'text': [], 'confidences': [], 'positions': [], 'full_text': ''}
 
-
-
-
+def analyze_image_composition(image: Image.Image) -> Dict[str, any]:
+    """
+    Analyze the composition of the image including rule of thirds and visual balance.
+    
+    Args:
+        image: PIL Image object
+        
+    Returns:
+        Dictionary containing composition analysis results
+    """
+    try:
+        # Convert to numpy array
+        np_image = np.array(image)
+        height, width = np_image.shape[:2]
+        
+        # Calculate rule of thirds points
+        third_h = height // 3
+        third_w = width // 3
+        
+        # Create masks for different regions
+        thirds_mask = np.zeros((height, width))
+        thirds_mask[third_h:2*third_h, third_w:2*third_w] = 1
+        
+        # Analyze brightness distribution
+        if len(np_image.shape) == 3:  # Color image
+            gray = cv2.cvtColor(np_image, cv2.COLOR_RGB2GRAY)
+        else:
+            gray = np_image
+            
+        # Calculate brightness in different regions
+        left_brightness = np.mean(gray[:, :width//2])
+        right_brightness = np.mean(gray[:, width//2:])
+        top_brightness = np.mean(gray[:height//2, :])
+        bottom_brightness = np.mean(gray[height//2:, :])
+        
+        return {
+            'balance_horizontal': abs(left_brightness - right_brightness) / 255,
+            'balance_vertical': abs(top_brightness - bottom_brightness) / 255,
+            'thirds_intensity': np.mean(gray * thirds_mask) / 255,
+            'overall_brightness': np.mean(gray) / 255
+        }
+    except Exception as e:
+        logging.error(f"Error in composition analysis: {str(e)}")
+        return {
+            'balance_horizontal': 0,
+            'balance_vertical': 0,
+            'thirds_intensity': 0,
+            'overall_brightness': 0
+        }
 
 
 
