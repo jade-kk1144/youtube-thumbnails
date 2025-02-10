@@ -28,7 +28,6 @@ def show_main_display(sidebar_state):
     # Extract video ID and get thumbnail
     video_id = extract_video_id(sidebar_state['url'])
 
-
     if not video_id:
         st.error("Invalid YouTube URL")
         return
@@ -37,6 +36,7 @@ def show_main_display(sidebar_state):
         video_details = get_video_details(video_id, api_key=st.secrets["YOUTUBE_API_KEY"])
         video_data = calculate_video_metrics(video_details)
         channel_id = video_data['channel_id']
+        thumbnail = get_thumbnail(video_id)
     except:
         st.error('Failed to get video data')
 
@@ -47,7 +47,7 @@ def show_main_display(sidebar_state):
     try:
         # Create two columns
         if sidebar_state['compare_url']:
-            col1, col2, col3 = st.columns([0.3, 0.3,0.4])
+            col1, col2, col3 = st.columns([0.45, 0.4,0.15])
         else:
             col1, col2 = st.columns(2)
 
@@ -72,8 +72,7 @@ def show_main_display(sidebar_state):
                         # tab_names.append("Faces")
                     if sidebar_state['options']['text_detection']:
                         tab_names.append("Text")
-                    
-                    
+                      
                     tabs = st.tabs(tab_names)
                     
                     # Fill each tab with its analysis
@@ -108,12 +107,16 @@ def show_main_display(sidebar_state):
                         current_tab += 1                                                      
             except Exception as e:
                 st.error(f"Error processing thumbnail: {str(e)}")
+
+        with col3:
+            #
+            show_video_info (compare_video_details,compare_video_id,caption = "Video Information")  
     except Exception as e:
         st.error("Error")
 
 
 def show_color_analysis(image, settings):
-    st.subheader("Color Analysis")
+    st.subheader("Color Palette")
     colors = analyze_colors(image, settings['color_count'])
     # Display each color with its percentage
     for color, percentage in colors:
