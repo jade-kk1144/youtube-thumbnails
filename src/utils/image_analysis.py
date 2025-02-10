@@ -2,7 +2,6 @@
 
 import numpy as np
 from PIL import Image
-# import cv2
 # import face_recognition
 # import pytesseract
 from sklearn.cluster import KMeans
@@ -85,9 +84,12 @@ def detect_text(image: Image.Image) -> Dict[str, any]:
         logging.error(f"Error in text detection: {str(e)}")
         return {'text': [], 'confidences': [], 'positions': [], 'full_text': ''}
 
-def analyze_image_composition(image: Image.Image) -> Dict[str, any]:
+
+
+def analyze_image_composition(image: Image.Image) -> Dict[str, float]:
     """
-    Analyze the composition of the image including rule of thirds and visual balance.
+    Analyze the composition of the image including rule of thirds and visual balance
+    using PIL and numpy instead of OpenCV.
     
     Args:
         image: PIL Image object
@@ -96,9 +98,12 @@ def analyze_image_composition(image: Image.Image) -> Dict[str, any]:
         Dictionary containing composition analysis results
     """
     try:
-        # Convert to numpy array
-        np_image = np.array(image)
-        height, width = np_image.shape[:2]
+        # Convert image to grayscale using PIL
+        gray_image = image.convert('L')
+        
+        # Convert to numpy array for calculations
+        np_image = np.array(gray_image)
+        height, width = np_image.shape
         
         # Calculate rule of thirds points
         third_h = height // 3
@@ -108,32 +113,87 @@ def analyze_image_composition(image: Image.Image) -> Dict[str, any]:
         thirds_mask = np.zeros((height, width))
         thirds_mask[third_h:2*third_h, third_w:2*third_w] = 1
         
-        # Analyze brightness distribution
-        if len(np_image.shape) == 3:  # Color image
-            gray = cv2.cvtColor(np_image, cv2.COLOR_RGB2GRAY)
-        else:
-            gray = np_image
-            
         # Calculate brightness in different regions
-        left_brightness = np.mean(gray[:, :width//2])
-        right_brightness = np.mean(gray[:, width//2:])
-        top_brightness = np.mean(gray[:height//2, :])
-        bottom_brightness = np.mean(gray[height//2:, :])
+        # Using numpy operations directly on grayscale array
+        left_brightness = np.mean(np_image[:, :width//2])
+        right_brightness = np.mean(np_image[:, width//2:])
+        top_brightness = np.mean(np_image[:height//2, :])
+        bottom_brightness = np.mean(np_image[height//2:, :])
         
-        return {
-            'balance_horizontal': abs(left_brightness - right_brightness) / 255,
-            'balance_vertical': abs(top_brightness - bottom_brightness) / 255,
-            'thirds_intensity': np.mean(gray * thirds_mask) / 255,
-            'overall_brightness': np.mean(gray) / 255
+        # Normalize values between 0 and 1
+        max_pixel_value = 255.0
+        
+        analysis_results = {
+            'balance_horizontal': abs(left_brightness - right_brightness) / max_pixel_value,
+            'balance_vertical': abs(top_brightness - bottom_brightness) / max_pixel_value,
+            'thirds_intensity': np.mean(np_image * thirds_mask) / max_pixel_value,
+            'overall_brightness': np.mean(np_image) / max_pixel_value
         }
+        
+        # Add additional composition metrics
+        
+        # Calculate edge density using Sobel-like operations
+        dx = np.diff(np_image, axis=1, prepend=np_image[:, :1])
+        dy = np.diff(np_image, axis=0, prepend=np_image[:1, :])
+        edge_magnitude = np.sqrt(dx**2 + dy**2)
+        analysis_results['edge_density'] = np.mean(edge_magnitude) / max_pixel_value
+        
+        # Calculate contrast
+        contrast = np.std(np_image) / max_pixel_value
+        analysis_results['contrast'] = contrast
+        
+        return analysis_results
+        
     except Exception as e:
         logging.error(f"Error in composition analysis: {str(e)}")
         return {
             'balance_horizontal': 0,
             'balance_vertical': 0,
             'thirds_intensity': 0,
-            'overall_brightness': 0
+            'overall_brightness': 0,
+            'edge_density': 0,
+            'contrast': 0
         }
+
+def get_composition_insights(analysis_results: Dict[str, float]) -> Dict[str, str]:
+    """
+    Generate human-readable insights from the composition analysis results.
+    
+    Args:
+        analysis_results: Dictionary containing composition metrics
+        
+    Returns:
+        Dictionary containing insights and suggestions
+    """
+    insights = {}
+    
+    # Analyze horizontal balance
+    if analysis_results['balance_horizontal'] < 0.1:
+        insights['balance'] = "The image has good horizontal balance"
+    else:
+        insights['balance'] = "Consider rebalancing elements horizontally"
+    
+    # Analyze brightness
+    if analysis_results['overall_brightness'] < 0.3:
+        insights['brightness'] = "The image might be too dark"
+    elif analysis_results['overall_brightness'] > 0.7:
+        insights['brightness'] = "The image might be too bright"
+    else:
+        insights['brightness'] = "Good overall brightness"
+    
+    # Analyze rule of thirds
+    if analysis_results['thirds_intensity'] > 0.4:
+        insights['composition'] = "Good use of rule of thirds"
+    else:
+        insights['composition'] = "Consider placing key elements at rule of thirds intersections"
+    
+    # Analyze contrast
+    if analysis_results['contrast'] < 0.15:
+        insights['contrast'] = "Consider increasing image contrast"
+    elif analysis_results['contrast'] > 0.5:
+        insights['contrast'] = "Good contrast level"
+    
+    return insights
 
 
 def detect_faces(image: Image.Image) -> List[Tuple[int, int, int, int]]:

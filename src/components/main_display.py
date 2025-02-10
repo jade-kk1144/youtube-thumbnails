@@ -1,13 +1,14 @@
 # src/components/main_display.py
 import streamlit as st
-from utils.youtube import extract_video_id, get_thumbnail
+from utils.youtube import extract_video_id, get_thumbnail, get_video_details
 from utils.image_analysis import (
     analyze_colors
     ,detect_faces
     ,detect_text
     , analyze_image_composition
 )
-
+from googleapiclient.discovery import build
+from googleapiclient.errors import HttpError
 
 # 
 def show_main_display(sidebar_state):
@@ -36,8 +37,17 @@ def show_main_display(sidebar_state):
             
             # Display thumbnail with half width
             st.image(thumbnail, caption="Video Thumbnail", use_container_width=True)
+            
+            try:
+                video_details = get_video_details(video_id)      
+                              
+                st.write(video_details)  # Add this line
+            except:
+                st.text(video_request)
+                st.error('api fail')
+            # 
             # try:
-            # video_details = get_video_details(video_id)  
+            #   
             # Display video information
             # st.markdown(f"**Channel:** {video_details['channel_name']}")
             # st.markdown(f"**Title:** {video_details['title']}")
@@ -110,8 +120,8 @@ def show_color_analysis(image, settings):
                 f"""
                 <div style="
                     background-color: rgb{int(color[0]),int(color[1]),int(color[2])};
-                    width: 100px;
-                    height: 50px;
+                    width: 30px;
+                    height: 30px;
                     border: 1px solid #ddd;
                     border-radius: 5px;
                     display: inline-block;
