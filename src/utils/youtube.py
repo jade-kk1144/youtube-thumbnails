@@ -126,7 +126,8 @@ def calculate_video_metrics(video_data):
         
     except Exception as e:
         print(f"Error calculating metrics: {str(e)}")
-        return None        
+        return None
+            
 
 def get_video_details(video_id: str, api_key: str) -> Dict:
     """
