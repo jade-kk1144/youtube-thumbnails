@@ -103,14 +103,14 @@ def show_main_display(sidebar_state):
                                 compare_thumbnail =get_thumbnail(compare_video_id)
                                 st.image(compare_thumbnail, caption="Compare Thumbnail", use_container_width=True)
                             with col2:
-                                st.markdown(f"**Title:** {video_details['title']}")
-                                st.markdown(f"**Views:** {format_view_counts(video_details['view_count'])}")
+                                st.markdown(f"**Title:** {compare_video_details['title']}")
+                                st.markdown(f"**Views:** {format_view_counts(compare_video_details['view_count'])}")
                                 st.markdown(
                                          f"""
-                                         **Likes:** {format_view_counts(video_details['like_count'])}  **Comments:** {format_view_counts(video_details['comment_count'])}
+                                         **Likes:** {format_view_counts(compare_video_details['like_count'])}  **Comments:** {format_view_counts(compare_video_details['comment_count'])}
                                          """
                                          )                       
-                                st.markdown(f"**Published:** {(video_details['published_date'])}")  
+                                st.markdown(f"**Published:** {(compare_video_details['published_date'])}")  
                         else:
                             display_metrics_tab(video_data)
                         current_tab += 1
@@ -282,7 +282,7 @@ def display_metrics_tab(video_data, comparison_metrics = None):
            delta=round(metrics['comment_ratio'] - benchmark['comment_ratio'], 2)
        )
 
-   with st.expander("Detailed Metrics"):
+   with st.expander("Benchmark Metrics"):
         metrics_vs_benchmark = {
             'Sub Conversion (%)': [metrics['sub_conversion'], benchmark.get('sub_conversion', '-')],
             'Views/Day': [metrics['view_velocity'], benchmark.get('view_velocity', '-')]
