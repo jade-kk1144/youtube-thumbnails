@@ -3,7 +3,7 @@ import streamlit as st
 from utils.youtube import extract_video_id, get_thumbnail
 from utils.image_analysis import (
     analyze_colors
-    # detect_faces,
+    ,detect_faces
     ,detect_text
     , analyze_image_composition
 )
@@ -20,6 +20,8 @@ def show_main_display(sidebar_state):
     if not video_id:
         st.error("Invalid YouTube URL")
         return
+
+    
         
     # Get and display thumbnail
     try:
@@ -111,24 +113,23 @@ def show_color_analysis(image, settings):
         # Add some spacing between rows
         st.write("")
 
-# 
-# def show_face_analysis(image, settings):
-    # st.subheader("Face Detection")
-    # face_locations = detect_faces(image)
-    # 
-    # if face_locations:
-        # st.write(f"Number of faces detected: {len(face_locations)}")
-        # 
+
+def show_face_analysis(image, settings):
+    st.subheader("Face Detection")
+    face_locations = detect_faces(image)
+    
+    if face_locations:
+        st.write(f"Number of faces detected: {len(face_locations)}")
+        
         # Display image with face boxes
-        # import numpy as np
-        # import cv2
-        # 
-        # np_image = np.array(image)
-        # for top, right, bottom, left in face_locations:
-            # cv2.rectangle(np_image, (left, top), (right, bottom), (0, 255, 0), 2)
-        # st.image(np_image, caption="Faces Detected", use_column_width=True)
-    # else:
-        # st.write("No faces detected")
+    
+            
+        np_image = np.array(image)
+        for top, right, bottom, left in face_locations:
+            cv2.rectangle(np_image, (left, top), (right, bottom), (0, 255, 0), 2)
+        st.image(np_image, caption="Faces Detected", use_column_width=True)
+    else:
+        st.write("No faces detected")
 
 def show_text_analysis(image, settings):
     st.subheader("Text Analysis")

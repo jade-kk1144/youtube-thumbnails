@@ -136,7 +136,32 @@ def analyze_image_composition(image: Image.Image) -> Dict[str, any]:
         }
 
 
-
+def detect_faces(image: Image.Image) -> List[Tuple[int, int, int, int]]:
+    """
+    Detect faces in the image and return their locations.
+    
+    Args:
+        image: PIL Image object
+        
+    Returns:
+        List of tuples containing face locations (top, right, bottom, left)
+    """
+    try:
+        # Convert PIL image to numpy array
+        np_image = np.array(image)
+        
+        # Convert RGB to BGR for cv2
+        if len(np_image.shape) == 3:  # Color image
+            np_image = np_image[:, :, ::-1]
+        
+        # Detect faces using face_recognition library
+        face_locations = face_recognition.face_locations(np_image)
+        
+        return face_locations
+    except Exception as e:
+        logging.error(f"Error in face detection: {str(e)}")
+        return []
+        
 
 
 
