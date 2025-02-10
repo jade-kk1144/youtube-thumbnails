@@ -1,6 +1,10 @@
 # src/components/main_display.py
 import streamlit as st
-from utils.youtube import extract_video_id, get_thumbnail, get_video_details, format_view_counts
+import pandas as pd
+from utils.youtube import (
+    extract_video_id, get_thumbnail, get_video_details, 
+    format_view_counts, calculate_video_metrics
+)
 from utils.image_analysis import (
     analyze_colors
     ,detect_faces
@@ -41,6 +45,7 @@ def show_main_display(sidebar_state):
             
             try:
                 video_details = get_video_details(video_id, api_key=st.secrets["YOUTUBE_API_KEY"])
+                video_data = calculate_video_metrics(video_details)
                 st.markdown(f"**Channel:** {video_details['channel_name']}   **Subs:** {format_view_counts(video_details['subscriber_count'])}")
                 st.markdown(f"**Title:** {video_details['title']}")
                 st.markdown(f"**Views:** {format_view_counts(video_details['view_count'])}")
@@ -70,8 +75,7 @@ def show_main_display(sidebar_state):
                 # Create tabs for different analyses
                 if any(sidebar_state['options'].values()):
                     tabs = []
-                    tab_names = []
-                    
+                    tab_names = ["Metrics"]
                     if sidebar_state['options']['color_analysis']:
                         tab_names.append("Colors")
                     if sidebar_state['options']['face_detection']:
@@ -85,7 +89,9 @@ def show_main_display(sidebar_state):
                     
                     # Fill each tab with its analysis
                     current_tab = 0
-                    
+                    with tabs[0]:
+                        display_metrics_tab(video_data)
+                        current_tab += 1
                     if sidebar_state['options']['color_analysis']:
                         with tabs[current_tab]:
                             show_color_analysis(thumbnail, sidebar_state['settings'])
@@ -217,3 +223,60 @@ def show_composition_analysis(image):
         st.markdown(f"**Faces Detected:** {len(face_locations)}")
         if len(face_locations) > 0:
             st.markdown("*Consider positioning faces along rule-of-thirds points for better engagement*")
+    
+def display_metrics_tab(video_data, comparison_metrics = None):
+   metrics = calculate_video_metrics(video_data)
+   
+   # Default benchmarks
+   default_benchmarks = {
+       'engagement_score': 50,
+       'like_ratio': 2.5,
+       'comment_ratio': 0.3,
+       'sub_conversion':2,
+       'view_velocity':1000,
+       'note': '* Using fixed average benchmarks from 2024 : engagement 50, like ratio: 2.5%; comment ratio: 0.3%, conversion: 2%'
+   }
+   
+   benchmark = comparison_metrics if comparison_metrics else default_benchmarks
+   
+   col1, col2, col3 = st.columns(3)
+   
+   with col1:
+       st.metric(
+           "Overall Engagement", 
+           f"{metrics['engagement_score']:.1f}/100",
+           delta=round(metrics['engagement_score'] - benchmark['engagement_score'], 1)
+       )
+   
+   with col2:
+       st.metric(
+           "Like Rate",
+           f"{metrics['like_ratio']:.2f}%",
+           delta=round(metrics['like_ratio'] - benchmark['like_ratio'], 2)
+       )
+   
+   with col3:
+       st.metric(
+           "Comment Rate", 
+           f"{metrics['comment_ratio']:.2f}%",
+           delta=round(metrics['comment_ratio'] - benchmark['comment_ratio'], 2)
+       )
+
+   with st.expander("Detailed Metrics"):
+        metrics_vs_benchmark = {
+            'Sub Conversion (%)': [metrics['sub_conversion'], benchmark.get('sub_conversion', '-')],
+            'Views/Day': [metrics['view_velocity'], benchmark.get('view_velocity', '-')]
+        }
+
+        df_metrics = pd.DataFrame(metrics_vs_benchmark, index=['Current', 'Benchmark'])
+
+        # Format numbers
+        for col in df_metrics.columns:
+            if 'Ratio' in col or 'Conversion' in col:
+                df_metrics[col] = df_metrics[col].apply(lambda x: f"{x:.1f}" if isinstance(x, (int, float)) else x)
+            else:
+                df_metrics[col] = df_metrics[col].apply(lambda x: f"{x:,.0f}" if isinstance(x, (int, float)) else x)
+
+        st.table(df_metrics)
+        if 'note' in benchmark:
+            st.write(benchmark['note'])
