@@ -30,68 +30,6 @@ def get_thumbnail(video_id):
         response = requests.get(url)
     return Image.open(BytesIO(response.content))
 
-def get_channel_videos(channel_id: str, limit: int = 10) -> List[Dict]:
-    """Get latest videos from a YouTube channel using YouTube API."""
-    import streamlit as st
-    """
-    Get latest videos from a YouTube channel using YouTube API.
-    
-    Args:
-        channel_id (str): YouTube channel ID
-        api_key (str): YouTube API key
-        limit (int): Number of videos to fetch
-    """
-    youtube = build('youtube', 'v3', developerKey=st.secrets["youtube_api"])
-    videos_data = []
-    
-    try:
-        # Get channel's uploads playlist ID
-        channel_response = youtube.channels().list(
-            part="contentDetails",
-            id=channel_id
-        ).execute()
-        
-        uploads_playlist_id = channel_response['items'][0]['contentDetails']['relatedPlaylists']['uploads']
-        
-        # Get videos from uploads playlist
-        request = youtube.playlistItems().list(
-            part="snippet,contentDetails",
-            playlistId=uploads_playlist_id,
-            maxResults=limit
-        )
-        
-        while request and len(videos_data) < limit:
-            response = request.execute()
-            
-            video_ids = [item['contentDetails']['videoId'] for item in response['items']]
-            
-            # Get detailed video statistics
-            stats_response = youtube.videos().list(
-                part="statistics,contentDetails",
-                id=','.join(video_ids)
-            ).execute()
-            
-            # Combine video data
-            for item, stats in zip(response['items'], stats_response['items']):
-                video_info = {
-                    'title': item['snippet']['title'],
-                    'video_id': item['contentDetails']['videoId'],
-                    'publish_date': item['snippet']['publishedAt'],
-                    'thumbnail_url': item['snippet']['thumbnails']['high']['url'],
-                    'views': int(stats['statistics'].get('viewCount', 0)),
-                    'likes': int(stats['statistics'].get('likeCount', 0)),
-                    'comments': int(stats['statistics'].get('commentCount', 0))
-                }
-                videos_data.append(video_info)
-            
-            request = youtube.playlistItems().list_next(request, response)
-            
-        return videos_data
-            
-    except HttpError as e:
-        print(f"YouTube API error: {e}")
-        return []
-
 def calculate_video_metrics(video_data):
     try:
         # Validate required fields
@@ -182,6 +120,45 @@ def get_video_details(video_id: str, api_key: str) -> Dict:
     except HttpError as e:
         print(f"YouTube API error: {e}")
         return None
+
+
+def get_video_stats(channel_id, api_key):
+   youtube = build('youtube', 'v3', developerKey=api_key)
+#    channel_id = get_channel_id(channel_url)
+#    
+   # Get latest videos
+   videos_request = youtube.search().list(
+       part='snippet',
+       channelId=channel_id,
+       order='date',
+       maxResults=20
+    #    ,publishedAfter=start_date,
+    #    publishedBefore=end_date
+   )
+   videos_response = videos_request.execute()
+   
+   # Get stats for each video
+   video_stats = []
+   for video in videos_response['items']:
+       video_id = video['id']['videoId']
+       stats_request = youtube.videos().list(
+           part='statistics',
+           id=video_id
+       )
+       stats_response = stats_request.execute()
+       
+       if stats_response['items']:
+           stats = stats_response['items'][0]['statistics']
+           video_stats.append({
+               'title': video['snippet']['title'],
+               'published_at': video['snippet']['publishedAt'],
+               'views': int(stats.get('viewCount', 0)),
+               'likes': int(stats.get('likeCount', 0)), 
+               'comments': int(stats.get('commentCount', 0))
+           })
+   
+   return pd.DataFrame(video_stats)
+
 
 def analyze_video_performance(videos_data: List[Dict]) -> Dict:
     """

@@ -3,7 +3,8 @@ import streamlit as st
 import pandas as pd
 from utils.youtube import (
     extract_video_id, get_thumbnail, get_video_details, 
-    format_view_counts, calculate_video_metrics
+    format_view_counts, calculate_video_metrics,
+    get_video_stats
 )
 from utils.image_analysis import (
     analyze_colors
@@ -32,22 +33,30 @@ def show_main_display(sidebar_state):
         return
 
     try:
+        video_details = get_video_details(video_id, api_key=st.secrets["YOUTUBE_API_KEY"])
+        video_data = calculate_video_metrics(video_details)
+        channel_id = video_data['channel_id']
+        video_chanel_data = get_video_stats(channel_id ,  api_key=st.secrets["YOUTUBE_API_KEY"])
+        
+    except:
+        st.error('Failed to get data')
+    try:
         # Create two columns
         col1, col2 = st.columns([0.3, 0.7])
 
         with col1:
+            st.subheader("Channel Information")
+            display_dashboard(video_chanel_data)
             st.subheader("Video Information")
-            
+    
             # Get video details
             
             thumbnail = get_thumbnail(video_id)
-            
+
             # Display thumbnail with half width
             st.image(thumbnail, caption="Video Thumbnail", use_container_width=True)
             
             try:
-                video_details = get_video_details(video_id, api_key=st.secrets["YOUTUBE_API_KEY"])
-                video_data = calculate_video_metrics(video_details)
                 st.markdown(f"**Channel:** {video_details['channel_name']}   **Subs:** {format_view_counts(video_details['subscriber_count'])}")
                 st.markdown(f"**Title:** {video_details['title']}")
                 st.markdown(f"**Views:** {format_view_counts(video_details['view_count'])}")
@@ -57,6 +66,8 @@ def show_main_display(sidebar_state):
                          """
                          )                       
                 st.markdown(f"**Published:** {(video_details['published_date'])}")  
+                # st.markdown(video_chanel_data)
+                
                 # st.write(video_details)                            
             except:
                 st.error('api fail')
@@ -300,3 +311,60 @@ def display_metrics_tab(video_data, comparison_metrics = None):
         st.table(df_metrics)
         if 'note' in benchmark:
             st.write(benchmark['note'])
+
+
+def format_date(df):
+   # Convert to datetime if not already
+   df['published_at'] = pd.to_datetime(df['published_at'])
+   
+   # Get date range
+   date_range = (df['published_at'].max() - df['published_at'].min()).days
+   
+   # Format based on range
+   if date_range > 365:
+       df['display_date'] = df['published_at'].dt.strftime('%b-%y')
+   else:
+       df['display_date'] = df['published_at'].dt.strftime('%d-%b-%y')
+   
+   return df
+
+def display_dashboard(df):
+   st.title("Channel Performance")
+   df = format_date(df)
+   # Summary metrics
+   avg_views = df['views'].sum()
+   avg_likes = df['likes'].mean()
+   avg_comments = df['comments'].mean()
+   
+   col1, col2, col3 = st.columns(3)
+   col1.metric("Avg View",f"{format_view_counts(avg_views)}")
+   col2.metric("Avg Likes", f"{format_view_counts(avg_likes)}")
+   col3.metric("Avg Comments", f"{format_view_counts(avg_comments)}")
+   
+   col1,col2 = st.columns(2)
+   col1.metric("Likes/View",f"{(df['likes'].sum()/df['views'].sum()*100):.2f}%")
+   col2.metric("Comments/View",f"{(df['comments'].sum()/df['views'].sum()*100):.2f}%")
+   # Performance trends
+   metric = st.selectbox("Select Metric", ['views', 'likes', 'comments'])
+   chart_type = st.selectbox("Select Chart Type", 
+                            ['Line',  'Bar'])
+   # Create tooltip data
+   df['tooltip'] = df.apply(lambda x: f"Title: {x['title']}\nViews: {format_view_counts(x['views'])}", axis=1)
+#    x_col = st.selectbox("Select X-axis", ['published_at', 'title'])
+   x_col = 'published_at'
+   # Prepare data
+   plot_df = df[[x_col, metric]].copy()
+
+#    Plot based on selection
+   if chart_type == 'Line':
+       st.line_chart(data=plot_df, x=x_col, y=metric)
+   elif chart_type == 'Area': 
+       st.area_chart(data=plot_df, x=x_col, y=metric)
+   elif chart_type == 'Bar':
+       st.bar_chart(data=plot_df, x=x_col, y=metric)
+   else:  # Scatter
+       st.scatter_chart(data=plot_df, x=x_col, y=metric)
+       
+   # Data table
+   st.subheader("Latest Videos Table")
+   st.dataframe(df[['display_date','views','likes','comments','title']])
