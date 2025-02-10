@@ -74,7 +74,6 @@ def show_main_display(sidebar_state):
                         tab_names.append("Text")
                     
                     
-                        
                     tabs = st.tabs(tab_names)
                     
                     # Fill each tab with its analysis
@@ -119,8 +118,8 @@ def show_color_analysis(image, settings):
     # Display each color with its percentage
     for color, percentage in colors:
         # Create columns with specific widths
-        col1, col2 = st.columns([1, 4])
-        
+        col1, col2 = st.columns([1, 5])
+    
         with col1:
             # Convert RGB tuple to CSS color string
             rgb_str = f"rgb({int(color[0])}, {int(color[1])}, {int(color[2])})"
@@ -333,8 +332,12 @@ def display_dashboard(df):
    df['comment_ratio'] = (df['comments'] / df['views']) * 100
    
    col1,col2 = st.columns(2)
-   metric = st.selectbox("Select Metric", ['views', 'likes', 'comments','like_ratio','comment_ratio'])
-   chart_type = st.selectbox("Select Chart Type",  ['Line',  'Bar'])
+
+   with col1:
+       metric = st.selectbox("Select Metric", ['views', 'likes', 'comments','like_ratio','comment_ratio'])
+   with col2:
+       chart_type = st.selectbox("Select Chart Type",  ['Line',  'Bar'])
+   
 #    with col1:
     #    metric = st.selectbox("Select Metric", ['views', 'likes', 'comments','like_ratio','comment_ratio'])
 #    with col2:
@@ -354,31 +357,7 @@ def display_dashboard(df):
        st.bar_chart(data=plot_df, x=x_col, y=metric)
    else:  # Scatter
        st.scatter_chart(data=plot_df, x=x_col, y=metric)
-   
-   
-   
-    # Plot bars for views
-#    fig, ax1 = plt.subplots(figsize=(10, 6))
-#    ax1.bar(df['display_date'], df['views'], color='skyblue', alpha=0.7)
-#    ax1.set_ylabel('Views', color='skyblue')
-#    
-#    Create second y-axis for ratios
-#    ax2 = ax1.twinx()
-#    
-#    Plot lines for engagement ratios
-#    like_ratio = (df['likes'] / df['views']) * 100
-#    comment_ratio = (df['comments'] / df['views']) * 100
-#    
-#    ax2.plot(df['display_date'], like_ratio, 'r-', label='Like/View %')
-#    ax2.plot(df['display_date'], comment_ratio, 'g-', label='Comment/View %')
-#    ax2.set_ylabel('Engagement Rate (%)')
-#    
-#    plt.title('Video Performance and Engagement Rates')
-#    plt.xticks(rotation=45)
-#    plt.legend()
-#    plt.tight_layout()
-#    
-#    st.pyplot(fig)
+
    # Data table
    st.subheader("Latest Videos Table")
    st.dataframe(df[['display_date','views','likes','comments','title']],
