@@ -11,12 +11,12 @@ def show_sidebar():
         
         # Time range selector
         st.subheader("Time Range")
-        # date_range = st.date_input(
-            # "Select date range",
-            # value=(datetime.now() - timedelta(days=14), datetime.now()),
-            # min_value=datetime.now() - timedelta(weeks=52),
-            # max_value=datetime.now()
-        # )
+        date_range = st.date_input(
+            "Select date range",
+            value=(datetime.now() - timedelta(days=14), datetime.now()),
+            min_value=datetime.now() - timedelta(weeks=52),
+            max_value=datetime.now()
+        )
         # 
         # Analysis options
         st.subheader("Analysis Options")
@@ -39,7 +39,7 @@ def show_sidebar():
         return {
             'url': url,
             'compare_url' : compare_url,
-            # 'date_range': date_range,
+            'date_range': date_range,
             'options': options,
             'settings': settings
         }

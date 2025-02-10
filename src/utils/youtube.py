@@ -7,7 +7,7 @@ from typing import List, Dict
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 import isodate
-from datetime import datetime
+from datetime import datetime,timezone
 
 def extract_video_id(url):
     patterns = [
@@ -124,17 +124,13 @@ def get_video_details(video_id: str, api_key: str) -> Dict:
 
 def get_video_stats(channel_id, api_key):
    youtube = build('youtube', 'v3', developerKey=api_key)
-#    channel_id = get_channel_id(channel_url)
-#    
-   # Get latest videos
    videos_request = youtube.search().list(
-       part='snippet',
-       channelId=channel_id,
-       order='date',
-       maxResults=20
-    #    ,publishedAfter=start_date,
-    #    publishedBefore=end_date
-   )
+    part='snippet',
+    channelId=channel_id,
+    order='date',
+    maxResults=30
+    )
+       
    videos_response = videos_request.execute()
    
    # Get stats for each video

@@ -18,9 +18,7 @@ from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 
 # 
-def show_main_display(sidebar_state):
-    st.title("Thumbnail Analysis Results")
-    
+def show_main_display(sidebar_state):    
     if not sidebar_state['url']:
         st.info("Enter a YouTube URL in the sidebar to begin analysis")
         return
@@ -57,7 +55,7 @@ def show_main_display(sidebar_state):
         
         with col2:
             show_video_info (video_details,video_id,caption = "Video Information")  
-            st.subheader("Analysis Results")    
+            st.subheader("Details")    
             # Get and display thumbnail
             try:   
                 # Create tabs for different analyses
@@ -360,6 +358,12 @@ def display_dashboard(df):
        st.bar_chart(data=plot_df, x=x_col, y=metric)
    else:  # Scatter
        st.scatter_chart(data=plot_df, x=x_col, y=metric)
+
+   
+   col1,col2 = st.columns(2)
+   col1.metric("Videos fetched",f"{(df['title'].count())}")
+   col2.metric("Peaked View",f"{format_view_counts(df['views'].max())}")
+   
 
    # Data table
    st.subheader("Latest Videos Table")
