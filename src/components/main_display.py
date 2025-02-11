@@ -31,7 +31,7 @@ def show_main_display(sidebar_state):
         return
 
     try:
-        video_details = get_video_details(video_id, api_key=st.secrets["YOUTUBE_API_KEY"])
+        video_details = get_video_details(video_id, api_key=st.secrets["YOUTUBE_API_KEY"])        
         video_data = calculate_video_metrics(video_details)
         channel_id = video_data['channel_id']
         thumbnail = get_thumbnail(video_id)

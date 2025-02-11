@@ -128,10 +128,10 @@ def get_video_stats(channel_id, api_key):
     part='snippet',
     channelId=channel_id,
     order='date',
-    maxResults=30
+    maxResults=5
     )
-       
    videos_response = videos_request.execute()
+   st.write(videos_response)
    
    # Get stats for each video
    video_stats = []

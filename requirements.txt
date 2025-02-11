@@ -4,8 +4,8 @@ google-api-python-client>=2.100.0
 google-auth-httplib2>=0.1.0
 google-auth-oauthlib>=1.0.0
 requests>=2.26.0
-plotly
-matplotlib
+plotly>=5.0.0
+matplotlib>=3.0.0
 # API and data processing
 google-generativeai>=0.3.0
 isodate>=0.7.0
@@ -17,7 +17,7 @@ opencv-python>=4.5.0
 numpy>=1.24.0
 Pillow>=10.0.0
 face_recognition>=1.3.0
-easyocr
+easyocr>=1.0.0
 # Data handling
 pandas>=2.0.0
 pyyaml>=6.0.0
@@ -25,4 +25,4 @@ scikit-learn>=1.0.0
 # Optional but recommended
 streamlit-extras>=0.3.0  # For enhanced UI components
 python-magic>=0.4.27    # For file type detection
-python-dotenv
+python-dotenv>=1.0.0

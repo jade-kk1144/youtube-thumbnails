@@ -1,0 +1,149 @@
+[33mcommit e07eaadff992dd349e828143c00e3c9aa1927e19[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m
+Author: jade-kk1144 <whiteturnip.1411@gmail.com>
+Date:   Mon Feb 10 13:03:50 2025 +0000
+
+    v1.4 idk
+
+[33mcommit c8dfe7424473fa3d564fb0466515a3f06e741688[m
+Author: jade-kk1144 <whiteturnip.1411@gmail.com>
+Date:   Mon Feb 10 12:34:00 2025 +0000
+
+    v1.3 added peak view
+
+[33mcommit 0ed1daf5c0768e40bbdb41743ad84f553d50f4a3[m
+Author: jade-kk1144 <whiteturnip.1411@gmail.com>
+Date:   Mon Feb 10 12:21:58 2025 +0000
+
+    fixed the chart select box
+
+[33mcommit 1b0ff05871166cb159abf5b5335f3de07a604d20[m
+Author: jade-kk1144 <whiteturnip.1411@gmail.com>
+Date:   Mon Feb 10 12:18:15 2025 +0000
+
+    v1.2 working chart and analysis tab
+
+[33mcommit 9507257cb567dc8ae0c86799a924422aece0d346[m
+Author: jade-kk1144 <whiteturnip.1411@gmail.com>
+Date:   Mon Feb 10 11:40:37 2025 +0000
+
+    v1.1 channel info
+
+[33mcommit c84bc0566fb25f3cf6181657ff2162365bc23904[m
+Author: jade-kk1144 <whiteturnip.1411@gmail.com>
+Date:   Mon Feb 10 10:45:53 2025 +0000
+
+    fix compare title tab
+
+[33mcommit 2979c476ceccc8a47db76955e50a18b8fad9c87c[m
+Author: jade-kk1144 <whiteturnip.1411@gmail.com>
+Date:   Mon Feb 10 10:36:58 2025 +0000
+
+    v1 working stats
+
+[33mcommit 58d73d016365a3af7b22337c1062c988210a0b1a[m
+Author: jade-kk1144 <whiteturnip.1411@gmail.com>
+Date:   Mon Feb 10 07:20:00 2025 +0000
+
+    working text detect
+
+[33mcommit db8e5ca5f622c4a12ba1900c92faea9e265e3f19[m
+Author: jade-kk1144 <whiteturnip.1411@gmail.com>
+Date:   Mon Feb 10 07:01:20 2025 +0000
+
+    runnign version
+
+[33mcommit b259cf251592fdf7f062061c3d9ac55ca636229e[m
+Author: jade-kk1144 <whiteturnip.1411@gmail.com>
+Date:   Mon Feb 10 06:56:12 2025 +0000
+
+    change ocr to using easy ocr instead of pytesseract
+
+[33mcommit 8175f9d9314189cd8df6e90a82b4acb506b523cd[m
+Author: jade-kk1144 <whiteturnip.1411@gmail.com>
+Date:   Mon Feb 10 06:23:10 2025 +0000
+
+    workin version with 1 video
+
+[33mcommit 20885647b0a40bc7cec807c8e95b39d26f5fa062[m
+Author: jade-kk1144 <whiteturnip.1411@gmail.com>
+Date:   Mon Feb 10 05:42:50 2025 +0000
+
+    added comparison video
+
+[33mcommit bd886b538c58e8f32f9179b01b38abc651c1ce9b[m
+Author: jade-kk1144 <whiteturnip.1411@gmail.com>
+Date:   Mon Feb 10 05:34:53 2025 +0000
+
+    working fetching video data
+
+[33mcommit 67616b4a2ac707a8b84d7468ce650b4d1244b0d3[m
+Author: jade-kk1144 <whiteturnip.1411@gmail.com>
+Date:   Mon Feb 10 04:58:09 2025 +0000
+
+    some change unimportant
+
+[33mcommit e7499cb8d6b304474b685c12762a71c11fa895fc[m
+Author: jade-kk1144 <whiteturnip.1411@gmail.com>
+Date:   Mon Feb 10 04:15:03 2025 +0000
+
+    update for local
+
+[33mcommit 67aaea8d83dda8d4e92f8f30b59dceb87cb637b0[m
+Author: jade-kk1144 <whiteturnip.1411@gmail.com>
+Date:   Mon Feb 10 03:19:52 2025 +0000
+
+    changed ui to 2 tab viesa
+
+[33mcommit 905e441b43fc9a4baf56d65db5a4b78ab0e0b3db[m
+Author: jade-kk1144 <whiteturnip.1411@gmail.com>
+Date:   Mon Feb 10 03:11:41 2025 +0000
+
+    added new built env, updated utils, working version of color still
+
+[33mcommit 1eec391331ea263e0e4adb402bad1f8b7a7d9d9d[m
+Author: jade-kk1144 <whiteturnip.1411@gmail.com>
+Date:   Mon Feb 10 02:56:24 2025 +0000
+
+    set up env
+
+[33mcommit 8bb354a96a0290468adc47f8089d7b4f410f563a[m
+Author: jade-kk1144 <whiteturnip.1411@gmail.com>
+Date:   Mon Feb 10 02:43:49 2025 +0000
+
+    remove the secrets from commit
+
+[33mcommit 44a47595aa33ffd34d8abdb7d3bdaffb6681f2c9[m
+Author: jade-kk1144 <whiteturnip.1411@gmail.com>
+Date:   Mon Feb 10 02:36:21 2025 +0000
+
+    adding in build evn
+
+[33mcommit 19683ee99a0aa28b44867c50c9c4bb24de3ecaca[m
+Author: jade-kk1144 <whiteturnip.1411@gmail.com>
+Date:   Mon Feb 10 02:20:22 2025 +0000
+
+    Working sidebar and color analysis
+
+[33mcommit 2cdce4928b2691481daab323e6e4623cc116b415[m
+Author: jade-kk1144 <whiteturnip.1411@gmail.com>
+Date:   Sun Feb 9 15:02:37 2025 +0000
+
+    update UI may break things
+
+[33mcommit 3764d33c56811f23bd888c66981e802663992c0b[m
+Author: jade-kk1144 <whiteturnip.1411@gmail.com>
+Date:   Sun Feb 9 14:50:16 2025 +0000
+
+    minor change
+
+[33mcommit 97ae7cffe35d39ea49771213c9be45b7b2524aeb[m
+Author: jade-kk1144 <whiteturnip.1411@gmail.com>
+Date:   Fri Feb 7 15:48:13 2025 +0000
+
+    change container
+
+[33mcommit b34e2283d238d2c296a5eb54faf862ef99711190[m
+Author: jade-kk1144 <whiteturnip.1411@gmail.com>
+Date:   Fri Feb 7 15:45:42 2025 +0000
+
+    add comment
